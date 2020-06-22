@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en" oncontextmenu="return false;">
+  <head>
+    <!--
+    Programmed By: RobotCoder on Robot-Forum
+    -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="Cache-Control" content="no-cache">
+    <meta http-equiv="Cache-Control" content="no-store">
+    <meta http-equiv="Pragma" content="no-cache">
+
+    <link rel='stylesheet' type='text/css' href='/frh/jquery/css/jquery-ui.css'>
+
+    <title>Manual Entry DI/DO</title>
+  </head>
+  <body onload=resetButtons();>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <center>
+      <h1>Enter DI Number</h1>
+      <span>Example: DI[1025] -- Enter 1025</span>
+      <br />
+      <input id="userDINumEntry" placeholder="Enter DI Number" value="" onFocus="this.select();">
+      <h1>Enter DI Comment</h1>
+      <span>This is the comment that you want to show on the robot in the DI value specified above.</span>
+      <br />
+      <input id="userDICommentEntry" name="" placeholder="Enter DI Comment" value="" onchange="sendDIData()" type="text" >
+      <p>&nbsp;</p>
+      <button id="sendDIBtn" type="button" onclick="sendDIData()">Submit DI Information</button>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      <button id="clearDIBtn" type="button" onclick="resetDIData()">Clear DI Information</button>
+      <p>&nbsp;</p>
+      <h1>Enter DO Number</h1>
+      <span>Example: DO[1025] -- Enter 1025</span>
+      <br />
+      <input id="userDONumEntry" placeholder="Enter DO Number" value="" onFocus="this.select();">
+      <h1>Enter DO Comment</h1>
+      <span>This is the comment that you want to show on the robot in the DO value specified above.</span>
+      <br />
+      <input id="userDOCommentEntry" name="" placeholder="Enter DO Comment" value="" onchange="sendDOData()" type="text" >
+      <p>&nbsp;</p>
+      <button id="sendDOBtn" type="button" onclick="sendDOData()">Submit DO Information</button>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      <button id="clearDOBtn" type="button" onclick="resetDOData()">Clear DO Information</button>
+    </center>
+
+    <script>
+      function ajax_create() {
+        var xmlhttp = null;
+
+        if (window.XMLHttpRequest) {
+          xmlhttp = new XMLHttpRequest();
+        }
+        else if (window.ActiveXObject) {
+          try {
+            xmlhttp = new ActiveXObject('Msxml2.XMLHTTP');
+          }
+          catch (e) {
+            xmlhttp = new ActiveXObject('Microsoft.XMLHTTP');
+          }
+        }
+        return xmlhttp;
+      }
+
+      function ajax_send_url2(urlstr, callback, async) {
+        if (xmlhttp == null) {
+          xmlhttp = ajax_create();
+        }
+        if (xmlhttp == null) {
+        }
+        else {
+          if (callback == null) {
+            xmlhttp.onreadystatechange = ajax_execute;
+          }
+          else {
+            xmlhttp.onreadystatechange = callback;
+          }
+          try {
+            xmlhttp.open("GET", urlstr, async);
+            xmlhttp.send();
+          }
+          catch(e) {
+          }
+        }
+      }
+      function ajax_send_url(urlstr, callback) {
+        ajax_send_url2(urlstr, callback, true);
+      }
+      function ajax_send_url_sync(urlstr, callback) {
+        ajax_send_url2(urlstr, callback, false);
+      }
+
+      function ajax_execute() {
+        if (xmlhttp.readyState == 4) {
+          if (xmlhttp.status == 200) {
+            try {
+              if (xmlhttp.responseXML) {
+                var rootElement = xmlhttp.responseXML.documentElement;
+                if ((rootElement != null) && (rootElement.nodeName == "JS")) {
+                  for (var idx = 0; idx < rootElement.childNodes.length; idx++) {
+                    var node = rootElement.childNodes.item(idx);
+                    eval(node.nodeValue);
+                  }
+                }
+                else {
+                  eval(xmlhttp.responseText);
+                }
+              }
+              else {
+                eval(xmlhttp.responseText);
+              }
+            }
+            catch(e) {
+            }
+          }
+          else {
+            document.location.reload(true);
+            return;
+          }
+          xmlhttp.abort();
+        }
+      }
+      function do_url(url) {
+        var xmlhttp = ajax_create();
+        if (xmlhttp) {
+          xmlhttp.open("GET", url, true);
+          xmlhttp.send();
+        }
+      }
+
+      function comToolLink(intFuncCode){
+        var url =
+        '/karel/ComGet?sFc='+intFuncCode;
+        if (undefined == parent.frmMain) {
+          document.location.href=url;
+          return;
+        }
+        parent.frmMain.location.href=url;
+
+      }
+      function comToolLinkRange(intFuncCode, startIndex, endIndex){
+        var url =
+        '/karel/ComGet?sFc='+intFuncCode +
+        '&sStartIdx='+startIndex +
+        '&sEndIdx='+endIndex;
+        if (undefined == parent.frmMain) {
+          document.location.href=url;
+          return;
+        }
+        parent.frmMain.location.href=url;
+
+      }
+      function sendComment(strComment,strName,intFuncCode) {
+        indx = strName.substring(10,strName.length);
+        var url =
+        '/karel/ComSet?sComment='+strComment+
+        '&sIndx='+eval(indx)+
+        '&sFc='+intFuncCode;
+        if (undefined == parent.frmUpdate) {
+          do_url(url);
+          return;
+        }
+        parent.frmUpdate.location.href=url;
+      }
+      function sendValue(strVal,strName,intFuncCode) {
+        indx = strName.substring(4,strName.length);
+        var url =
+        '/karel/ComSet?sValue='+strVal+
+        '&sIndx='+ indx+
+        '&sFc='+intFuncCode;
+        if (undefined == parent.frmUpdate) {
+          console.log(fail)
+          do_url(url);
+          return;
+        }
+        parent.frmUpdate.location.href=url;
+      }
+      
+      function resetButtons() {
+        document.getElementById("clearDIBtn").disabled = true
+        document.getElementById("clearDOBtn").disabled = true
+      }
+
+      function sendDIData() {
+        var diNum = document.getElementById("userDINumEntry").value ;
+        var diComment = document.getElementById("userDICommentEntry").value ;
+        sendComment(diComment,'strComment' + diNum,8) ;
+        document.getElementById("userDINumEntry").disabled = true ;
+        document.getElementById("userDICommentEntry").disabled = true ;
+        document.getElementById("sendDIBtn").disabled = true ;
+        document.getElementById("clearDIBtn").disabled = false ;
+      }
+      
+      function resetDIData() {
+        document.getElementById("userDINumEntry").disabled = false ;
+        document.getElementById("userDICommentEntry").disabled = false ;
+        document.getElementById("userDINumEntry").value = '' ;
+        document.getElementById("userDICommentEntry").value = '' ;
+        document.getElementById("sendDIBtn").disabled = false ;
+        document.getElementById("clearDIBtn").disabled = true ;
+      }
+
+      function sendDOData() {
+        var doNum = document.getElementById("userDONumEntry").value ;
+        var doComment = document.getElementById("userDOCommentEntry").value ;
+        sendComment(doComment,'strComment' + doNum,9) ;
+        document.getElementById("userDONumEntry").disabled = true ;
+        document.getElementById("userDOCommentEntry").disabled = true ;
+        document.getElementById("sendDOBtn").disabled = true ;
+        document.getElementById("clearDOBtn").disabled = false ;
+      }
+      
+      function resetDOData() {
+        document.getElementById("userDONumEntry").disabled = false ;
+        document.getElementById("userDOCommentEntry").disabled = false ;
+        document.getElementById("userDONumEntry").value = '' ;
+        document.getElementById("userDOCommentEntry").value = '' ;
+        document.getElementById("sendDOBtn").disabled = false ;
+        document.getElementById("clearDOBtn").disabled = true ;
+      }
+
+    </script>
+  </body>
+</html>
