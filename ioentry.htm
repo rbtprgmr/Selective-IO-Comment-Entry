@@ -10,8 +10,6 @@
     <meta http-equiv="Cache-Control" content="no-store">
     <meta http-equiv="Pragma" content="no-cache">
 
-    <link rel='stylesheet' type='text/css' href='/frh/jquery/css/jquery-ui.css'>
-
     <title>Manual Entry DI/DO</title>
   </head>
   <body onload=resetButtons();>
@@ -45,8 +43,11 @@
       <button id="clearDOBtn" type="button" onclick="resetDOData()">Clear DO Information</button>
     </center>
 
+    <!--Scripting Included Within HTML To Make It Easier For Load-->
+    <!--Fanuc Robot Will Allow .JS File Extensions-->
     <script>
-      function ajax_create() {
+      //Connect With Robot
+      function connectWithRobot() {
         var xmlhttp = null;
 
         if (window.XMLHttpRequest) {
@@ -63,94 +64,15 @@
         return xmlhttp;
       }
 
-      function ajax_send_url2(urlstr, callback, async) {
-        if (xmlhttp == null) {
-          xmlhttp = ajax_create();
-        }
-        if (xmlhttp == null) {
-        }
-        else {
-          if (callback == null) {
-            xmlhttp.onreadystatechange = ajax_execute;
-          }
-          else {
-            xmlhttp.onreadystatechange = callback;
-          }
-          try {
-            xmlhttp.open("GET", urlstr, async);
-            xmlhttp.send();
-          }
-          catch(e) {
-          }
-        }
-      }
-      function ajax_send_url(urlstr, callback) {
-        ajax_send_url2(urlstr, callback, true);
-      }
-      function ajax_send_url_sync(urlstr, callback) {
-        ajax_send_url2(urlstr, callback, false);
-      }
-
-      function ajax_execute() {
-        if (xmlhttp.readyState == 4) {
-          if (xmlhttp.status == 200) {
-            try {
-              if (xmlhttp.responseXML) {
-                var rootElement = xmlhttp.responseXML.documentElement;
-                if ((rootElement != null) && (rootElement.nodeName == "JS")) {
-                  for (var idx = 0; idx < rootElement.childNodes.length; idx++) {
-                    var node = rootElement.childNodes.item(idx);
-                    eval(node.nodeValue);
-                  }
-                }
-                else {
-                  eval(xmlhttp.responseText);
-                }
-              }
-              else {
-                eval(xmlhttp.responseText);
-              }
-            }
-            catch(e) {
-            }
-          }
-          else {
-            document.location.reload(true);
-            return;
-          }
-          xmlhttp.abort();
-        }
-      }
       function do_url(url) {
-        var xmlhttp = ajax_create();
+        var xmlhttp = connectWithRobot();
         if (xmlhttp) {
           xmlhttp.open("GET", url, true);
           xmlhttp.send();
         }
       }
 
-      function comToolLink(intFuncCode){
-        var url =
-        '/karel/ComGet?sFc='+intFuncCode;
-        if (undefined == parent.frmMain) {
-          document.location.href=url;
-          return;
-        }
-        parent.frmMain.location.href=url;
-
-      }
-      function comToolLinkRange(intFuncCode, startIndex, endIndex){
-        var url =
-        '/karel/ComGet?sFc='+intFuncCode +
-        '&sStartIdx='+startIndex +
-        '&sEndIdx='+endIndex;
-        if (undefined == parent.frmMain) {
-          document.location.href=url;
-          return;
-        }
-        parent.frmMain.location.href=url;
-
-      }
+      //Needed Function To Parse Data
       function sendComment(strComment,strName,intFuncCode) {
         indx = strName.substring(10,strName.length);
         var url =
@@ -163,25 +85,14 @@
         }
         parent.frmUpdate.location.href=url;
       }
-      function sendValue(strVal,strName,intFuncCode) {
-        indx = strName.substring(4,strName.length);
-        var url =
-        '/karel/ComSet?sValue='+strVal+
-        '&sIndx='+ indx+
-        '&sFc='+intFuncCode;
-        if (undefined == parent.frmUpdate) {
-          console.log(fail)
-          do_url(url);
-          return;
-        }
-        parent.frmUpdate.location.href=url;
-      }
       
+      //Disable Buttons On Page Load
       function resetButtons() {
         document.getElementById("clearDIBtn").disabled = true
         document.getElementById("clearDOBtn").disabled = true
       }
 
+      //Grab Data From Input, Send Using "sendComment" function, Disable Further Entry 
       function sendDIData() {
         var diNum = document.getElementById("userDINumEntry").value ;
         var diComment = document.getElementById("userDICommentEntry").value ;
@@ -192,6 +103,7 @@
         document.getElementById("clearDIBtn").disabled = false ;
       }
       
+      //Reset Form When Requested
       function resetDIData() {
         document.getElementById("userDINumEntry").disabled = false ;
         document.getElementById("userDICommentEntry").disabled = false ;
@@ -201,6 +113,7 @@
         document.getElementById("clearDIBtn").disabled = true ;
       }
 
+      //Grab Data From Input, Send Using "sendComment" function, Disable Further Entry 
       function sendDOData() {
         var doNum = document.getElementById("userDONumEntry").value ;
         var doComment = document.getElementById("userDOCommentEntry").value ;
@@ -211,6 +124,7 @@
         document.getElementById("clearDOBtn").disabled = false ;
       }
       
+      //Reset Form When Requested
       function resetDOData() {
         document.getElementById("userDONumEntry").disabled = false ;
         document.getElementById("userDOCommentEntry").disabled = false ;
@@ -219,7 +133,6 @@
         document.getElementById("sendDOBtn").disabled = false ;
         document.getElementById("clearDOBtn").disabled = true ;
       }
-
     </script>
   </body>
 </html>
