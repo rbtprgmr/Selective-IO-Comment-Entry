@@ -12,3 +12,6 @@ Instructions:
   * Click the submit button and the data will parse to the robot. The input fields will become disabled.
   * You can confirm entry by checking the IO screen on the robot.
   * Select "Clear DI/DO Information" to enable the input fields so another comment can be entered.
+
+# Dislaimer
+The author of this software is not employed by FANUC Corporation. All trademarks and registered trademarks are property of their respective owners, and company, product and service names mentioned in this readme or appearing in source code or other artifacts in this repository are used for identification purposes only. Use of these names does not imply endorsement by FANUC Corporation.
